@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>靈魂共鳴・解答之書</title>
+    
+    <!-- 引入 dotLottie 播放器 -->
+    <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.5/dist/dotlottie-wc.js" type="module"></script>
+
+    <style>
+        /* --- 1. 視覺基礎設定 --- */
+        :root {
+            --bg-gradient: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+            --glass-bg: rgba(255, 255, 255, 0.3);
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+            --text-primary: #536dfe; 
+            --text-secondary: #8c9eff;
+            --accent-color: #6c8bf0;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700&display=swap');
+
+        * {
+            box-sizing: border-box; /* 確保寬度計算包含邊框 */
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%);
+            font-family: 'Zen Maru Gothic', sans-serif;
+            color: var(--text-primary);
+            min-height: 100vh;
+            /* 讓內容置中，但允許小螢幕滾動 */
+            display: flex; 
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 背景流動光暈 */
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            opacity: 0.6;
+            animation: floatBlob 10s infinite alternate;
+        }
+        .blob-1 { width: 50vw; height: 50vw; background: #6c8bf0; top: -10%; left: -10%; }
+        .blob-2 { width: 40vw; height: 40vw; background: #a18cd1; bottom: 0; right: -10%; animation-delay: -5s; }
+
+        @keyframes floatBlob {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(30px, 50px); }
+        }
+
+        /* --- 響應式容器 --- */
+        .app-container {
+            width: 100%;
+            max-width: 480px; /* 限制最大寬度，像 App 一樣 */
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center; /* 垂直居中 */
+            z-index: 10;
+        }
+
+        /* --- 2. 貓咪舞台 --- */
+        .stage {
+            width: 300px;
+            height: 300px;
+            position: relative;
+            margin-bottom: 30px; /* 與卡片的距離 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0; /* 防止貓咪被壓縮 */
+        }
+
+        /* 貓咪顏色濾鏡 (如果你想變回黑色，把這行 filter 刪掉即可) */
+        dotlottie-wc {
+            width: 100%;
+            height: 100%;
+            transition: filter 0.5s ease;
+        }
+
+        /* 背景閃亮特效 */
+        .magic-burst {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120%; height: 120%;
+            pointer-events: none;
+            opacity: 0;
+            z-index: -1;
+        }
+
+        .ray {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 4px; height: 150px;
+            background: linear-gradient(to top, rgba(89, 100, 136, 0.736), #212941, rgba(108, 139, 240, 0));
+            transform-origin: center bottom;
+            opacity: 0;
+        }
+
+        .shining .magic-burst { opacity: 1; animation: rotateBurst 12s linear infinite; }
+        .shining .ray { opacity: 0.8; animation: flashRay 1.5s infinite alternate; }
+
+        @keyframes rotateBurst { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
+        @keyframes flashRay { 0% { height: 100px; opacity: 0.3; } 100% { height: 200px; opacity: 1; box-shadow: 0 0 25px #6c8bf0; } }
+
+        /* --- 3. UI 設計 (響應式調整) --- */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            border-radius: 30px;
+            padding: 30px;
+            width: 100%; /* 佔滿容器寬度 */
+            text-align: center;
+            /* 移除原本的 absolute positioning，改用 flex 佈局 */
+            transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        h1 { font-size: 1.5rem; margin-bottom: 10px; color: var(--text-primary); letter-spacing: 2px; }
+        .subtitle { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.6; }
+
+        textarea {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            padding: 15px;
+            border-radius: 20px;
+            font-family: inherit;
+            font-size: 1rem;
+            color: var(--text-primary);
+            resize: none;
+            outline: none;
+            margin-bottom: 20px;
+            transition: 0.3s;
+        }
+        textarea:focus { background: rgba(255, 255, 255, 0.9); border-color: var(--accent-color); }
+
+        .btn {
+            background: linear-gradient(135deg, #6c8bf0 0%, #a18cd1 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            letter-spacing: 1px;
+            box-shadow: 0 8px 20px rgba(108, 139, 240, 0.3);
+            transition: transform 0.2s;
+        }
+        .btn:active { transform: scale(0.96); }
+
+        .answer-box { min-height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .answer-intro { font-size: 0.85rem; color: var(--accent-color); margin-bottom: 10px; }
+        .answer-text { font-size: 1.4rem; font-weight: 700; line-height: 1.4; color: var(--text-primary); }
+
+        /* 狀態切換 - 使用 display: none 來避免佔位問題，搭配動畫 */
+        .hidden { display: none; }
+        
+        /* 進場動畫 */
+        .fade-in { animation: fadeIn 0.5s ease forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- 手機版特別調整 (Media Query) --- */
+        @media (max-width: 480px) {
+            .stage {
+                width: 250px; /* 手機上貓咪小一點 */
+                height: 250px;
+                margin-bottom: 20px;
+            }
+            h1 { font-size: 1.3rem; }
+            .glass-card { padding: 25px 20px; }
+        }
+        
+        /* 針對矮螢幕手機的調整 */
+        @media (max-height: 700px) {
+            .app-container { justify-content: flex-start; padding-top: 40px; }
+            .stage { width: 220px; height: 220px; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <div class="app-container">
+        
+        <!-- 動畫區 -->
+        <div class="stage" id="stage-area">
+            <!-- 閃光特效 -->
+            <div class="magic-burst">
+                <div class="ray" style="transform: translate(-50%, -100%) rotate(0deg)"></div>
+                <div class="ray" style="transform: translate(-50%, -100%) rotate(30deg)"></div>
+                <div class="ray" style="transform: translate(-50%, -100%) rotate(60deg)"></div>
+                <div class="ray" style="transform: translate(-50%, -100%) rotate(90deg)"></div>
+                <div class="ray" style="transform: translate(-50%, -100%) rotate(120deg)"></div>
+                <div class="ray" style="transform: translate(-50%, -100%) rotate(150deg)"></div>
+                <div class="ray" style="transform: translate(-50%, -100%) rotate(180deg)"></div>
+                <div class="ray" style="transform: translate(-50%, -100%) rotate(210deg)"></div>
+                <div class="ray" style="transform: translate(-50%, -100%) rotate(240deg)"></div>
+                <div class="ray" style="transform: translate(-50%, -100%) rotate(270deg)"></div>
+                <div class="ray" style="transform: translate(-50%, -100%) rotate(300deg)"></div>
+                <div class="ray" style="transform: translate(-50%, -100%) rotate(330deg)"></div>
+            </div>
+
+            <!-- Lottie 貓咪 -->
+            <dotlottie-wc 
+                id="cat-player"
+                src="https://lottie.host/f6755985-9dec-4e40-92e9-9682f19058e3/oUE9iZ4ldn.lottie" 
+                autoplay 
+                loop
+                speed="0.3">
+            </dotlottie-wc>
+        </div>
+
+        <!-- 輸入區 -->
+        <div id="input-view" class="glass-card fade-in">
+            <h1>靈魂共鳴・解答之書</h1>
+            <p class="subtitle">
+                請閉上雙眼，在心中默念困惑。<br>
+                宇宙能量將透過藍貓給予指引。
+            </p>
+            <textarea id="question" rows="1" placeholder="在此輸入..."></textarea>
+            <button class="btn" onclick="startThinking()">連結宇宙頻率</button>
+        </div>
+
+        <!-- 結果區 -->
+        <div id="result-view" class="glass-card hidden">
+            <div class="answer-box">
+                <p class="answer-intro">✦ 來自星際的訊息 ✦</p>
+                <div class="answer-text" id="answer"></div>
+            </div>
+            <p class="subtitle" style="font-size: 0.8rem; margin-top:10px;">這不是唯一答案，卻是此刻的共鳴。</p>
+            <button class="btn" style="background: rgba(255,255,255,0.5); color: var(--text-primary); border:1px solid #fff;" onclick="reset()">再次尋求指引</button>
+        </div>
+
+    </div>
+
+    <script>
+        const answers = [
+            "是的，毫無懸念", "現在就行動吧", "再等等會更好", "你其實早就知道答案了", "相信你的第一直覺",
+            "這不是最好的時機", "今天不是關鍵時刻", "勇敢一點", "結果會超出你的期待", "現在放棄太可惜了",
+            "你需要更多資訊", "別低估自己", "事情正在往好的方向走", "暫時先觀察", "這是個陷阱",
+            "你已經準備好了", "先顧好自己", "不要急著下決定", "有人正在暗中幫你", "你會感到驚喜",
+            "這不是你真正想要的", "換個角度想想", "答案比你想像中簡單", "你正在逃避真正的問題", "順其自然會更好",
+            "現在不是固執的時候", "你會後悔如果不嘗試", "再給它一次機會", "這條路會很累，但值得", "你其實不孤單",
+            "這需要一點時間", "你會笑著回頭看這件事", "現在的努力不會白費", "有些事該放下了", "你會遇到關鍵人物",
+            "信任比你以為的更重要", "你正在靠近答案", "這是必要的考驗", "你會因為這個決定成長", "先睡一覺再想",
+            "不必馬上有答案", "這不是唯一選項", "風險比你想像的大", "你會學到重要的一課", "再多問一個人看看",
+            "你值得更好的", "這會帶來改變", "不要害怕失敗", "現在後悔還來得及", "你會找到屬於你的方式",
+            "這不是結束", "有些事無法控制", "你正在做對的事", "你需要休息", "結果會慢慢浮現",
+            "你比你以為的更堅強", "這會讓你安心", "你正在被考驗耐心", "這是值得慶祝的事", "你會感謝現在的自己",
+            "這件事不用你來扛", "再撐一下", "機會正在靠近", "你會遇到阻礙，但能克服", "你需要更誠實一點",
+            "答案藏在細節裡", "你已經有方向了", "這次別再逃避", "會有意想不到的收穫", "你會被溫柔對待",
+            "你需要一點勇氣", "這是對你有利的", "先完成再說完美", "你已經做得很好了", "你會被理解",
+            "需要一點運氣", "你不需要討好任何人", "這是成長的代價", "你會找到平衡", "現在是轉彎的時候",
+            "你值得被好好對待", "別懷疑自己的感受", "你會遇到貴人", "這件事會慢慢好起來", "現在不是衝動的時候",
+            "你正在蛻變", "你會重新愛上這件事", "你其實已經放不下了", "現實比你想像溫柔", "保持一點彈性",
+            "你需要被理解", "你會找到出口", "你已經走很遠了", "再給自己一次機會", "這不是你的錯",
+            "你會遇到新的選擇", "你不孤單", "你會被肯定", "這會替你開一扇新門", "你的努力有人看見",
+            "宇宙正在重新排列", "這是靈魂的課題", "傾聽內心的聲音", "放下恐懼，愛會進來", "你的能量正在提升",
+            "這是一個業力的釋放", "感恩現在擁有的一切", "顯化正在發生", "保持高頻能量", "你被守護著",
+            "現在的混亂是為了重組", "答案在風中", "去看海吧，海會告訴你", "你的直覺是準確的導航", "一切都是最好的安排"
+        ];
+
+        const catPlayer = document.getElementById('cat-player');
+        const stageArea = document.getElementById('stage-area');
+        const inputView = document.getElementById('input-view');
+        const resultView = document.getElementById('result-view');
+        const questionInput = document.getElementById('question');
+        const answerText = document.getElementById('answer');
+
+        function startThinking() {
+            if(!questionInput.value.trim()) {
+                questionInput.style.transform = "translateX(5px)";
+                setTimeout(() => questionInput.style.transform = "translateX(0)", 100);
+                setTimeout(() => questionInput.style.transform = "translateX(-5px)", 200);
+                setTimeout(() => questionInput.style.transform = "translateX(0)", 300);
+                return;
+            }
+
+            // 1. 加速動畫
+            catPlayer.speed = 2.0;
+
+            // 2. 切換介面 (使用 class 切換)
+            inputView.classList.add('hidden');
+            inputView.classList.remove('fade-in');
+
+            // 3. 等待 2.5 秒
+            setTimeout(() => {
+                showResult();
+            }, 2500);
+        }
+
+        function showResult() {
+            const random = Math.floor(Math.random() * answers.length);
+            answerText.innerText = answers[random];
+
+            // 恢復速度並加特效
+            catPlayer.speed = 1.0; 
+            stageArea.classList.add('shining');
+
+            // 顯示結果
+            resultView.classList.remove('hidden');
+            resultView.classList.add('fade-in');
+        }
+
+        function reset() {
+            questionInput.value = "";
+            catPlayer.speed = 0.3;
+            stageArea.classList.remove('shining');
+            
+            resultView.classList.add('hidden');
+            resultView.classList.remove('fade-in');
+            
+            inputView.classList.remove('hidden');
+            inputView.classList.add('fade-in');
+        }
+    </script>
+</body>
+</html>
